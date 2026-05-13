@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Sandbox GPT Agent
   version: 2.1.0
-  description: Command and file control plane for a disposable VPS sandbox.
+  description: Command, file, job and artifact control plane for a controlled technology environment.
 servers:
   - url: https://TU_DOMINIO
 security:
@@ -111,9 +111,9 @@ paths:
     get:
       operationId: getSystemInfo
       x-openai-isConsequential: false
-      summary: Get sandbox system metadata.
+      summary: Get agent environment metadata.
       responses:
-        '200': { description: System metadata. }
+        '200': { description: Environment metadata. }
   /v1/exec:
     post:
       operationId: runCommand
@@ -259,7 +259,7 @@ paths:
       operationId: fetchUrlToFile
       x-openai-isConsequential: false
       summary: Download a URL to a file.
-      description: Fetches HTTP/HTTPS content and saves it on the VPS.
+      description: Fetches HTTP/HTTPS content and saves it in the workspace.
       requestBody:
         required: true
         content:
@@ -288,7 +288,7 @@ paths:
       operationId: importOpenAIConversationFiles
       x-openai-isConsequential: false
       summary: Save files uploaded in ChatGPT.
-      description: Downloads openaiFileIdRefs and saves them on the VPS.
+      description: Downloads openaiFileIdRefs and saves them in the workspace.
       requestBody:
         required: true
         content:

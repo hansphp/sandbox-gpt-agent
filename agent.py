@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-sandbox-gpt-agent: REST control plane for a disposable VPS sandbox.
+sandbox-gpt-agent: REST control plane for a controlled technology environment.
 
 This service is intentionally capable of remote command execution. It is meant
-for a VPS/lab that you control, not for shared or production systems.
+for a server, VPS, container, or lab that you control, not for shared or
+production systems.
 
 Core properties:
 - FastAPI + systemd service.
@@ -69,7 +70,7 @@ PRIVACY_CONTACT = os.getenv("SANDBOX_PRIVACY_CONTACT", "sandbox owner")
 app = FastAPI(
     title="Sandbox GPT Agent API",
     version=APP_VERSION,
-    description="Authenticated REST API for commanding a disposable VPS sandbox from a GPT Action.",
+    description="Authenticated REST API for operating a controlled technology environment from a GPT Action.",
     docs_url=None,
     redoc_url=None,
 )
@@ -203,8 +204,8 @@ class ChmodRequest(BaseModel):
 
 
 class FetchUrlRequest(BaseModel):
-    url: str = Field(..., description="HTTP/HTTPS URL to download into the VPS.")
-    path: str = Field(..., description="Destination path on the VPS.")
+    url: str = Field(..., description="HTTP/HTTPS URL to download into the workspace.")
+    path: str = Field(..., description="Destination path in the controlled environment.")
     method: str = Field(default="GET", description="HTTP method: GET, POST, PUT, or PATCH.")
     headers: Dict[str, str] = Field(default_factory=dict, description="Optional request headers.")
     body: Optional[str] = Field(default=None, description="Optional UTF-8 request body.")
@@ -571,7 +572,7 @@ def render_gpt_schema(server_url: str) -> str:
 info:
   title: Sandbox GPT Agent
   version: {APP_VERSION}
-  description: Command and file control plane for a disposable VPS sandbox.
+  description: Command, file, job and artifact control plane for a controlled technology environment.
 servers:
   - url: {server_url}
 security:
@@ -680,9 +681,9 @@ paths:
     get:
       operationId: getSystemInfo
       x-openai-isConsequential: false
-      summary: Get sandbox system metadata.
+      summary: Get agent environment metadata.
       responses:
-        '200': {{ description: System metadata. }}
+        '200': {{ description: Environment metadata. }}
   /v1/exec:
     post:
       operationId: runCommand
@@ -828,7 +829,7 @@ paths:
       operationId: fetchUrlToFile
       x-openai-isConsequential: {consequential}
       summary: Download a URL to a file.
-      description: Fetches HTTP/HTTPS content and saves it on the VPS.
+      description: Fetches HTTP/HTTPS content and saves it in the workspace.
       requestBody:
         required: true
         content:
@@ -857,7 +858,7 @@ paths:
       operationId: importOpenAIConversationFiles
       x-openai-isConsequential: {consequential}
       summary: Save files uploaded in ChatGPT.
-      description: Downloads openaiFileIdRefs and saves them on the VPS.
+      description: Downloads openaiFileIdRefs and saves them in the workspace.
       requestBody:
         required: true
         content:
@@ -916,10 +917,10 @@ def health() -> Dict[str, Any]:
 def privacy() -> str:
     return (
         "Sandbox GPT Agent Privacy Notice\n\n"
-        "This endpoint is for a private disposable VPS sandbox controlled by its owner. "
+        "This endpoint is for a private controlled technology environment operated by its owner. "
         "Requests sent to this service may include commands, file paths, file contents, "
-        "environment values, and task context needed to operate the sandbox. "
-        "The service writes an audit log on the VPS. It does not sell data or intentionally "
+        "environment values, and task context needed to operate that environment. "
+        "The service writes an audit log locally. It does not sell data or intentionally "
         "share data with third parties. Temporary signed download links may expose selected "
         "files to anyone who has the link until expiry or download limit. "
         f"Contact: {PRIVACY_CONTACT}.\n"

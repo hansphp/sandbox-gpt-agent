@@ -1,10 +1,10 @@
-# Guía completa: Custom GPT + Actions para controlar un VPS Rocky Linux 10 como sandbox
+# Guía completa: instalar sandbox-gpt-agent en Rocky Linux 10
 
 ## Objetivo
 
-Esta guía instala un servicio llamado `sandbox-gpt-agent` en un VPS Rocky Linux 10 para que un Custom GPT pueda operar el servidor mediante GPT Actions.
+Esta guia instala `sandbox-gpt-agent` en un VPS Rocky Linux 10 como despliegue de referencia para un agente tecnologico de proposito general conectado mediante GPT Actions.
 
-La interfaz es genérica. No programa scripts específicos de capturas, scrapers o aplicaciones. Sirve como control plane para que el GPT pueda crear ese código en solicitudes futuras, ejecutarlo, leer salidas, descargar artefactos y modificar archivos.
+La interfaz es generica. No programa scripts especificos de capturas, scrapers o aplicaciones. Sirve como control plane para que el GPT pueda crear codigo, ejecutar tareas, leer salidas, descargar artefactos, modificar archivos, diagnosticar servicios y preparar laboratorios tecnologicos en solicitudes futuras.
 
 ## Arquitectura
 
@@ -49,7 +49,7 @@ El servicio escucha localmente en `127.0.0.1:8765`. Nginx publica la API por HTT
 Sube el paquete al VPS:
 
 ```bash
-scp sandbox-gpt-rocky10.tar.gz root@IP_DEL_VPS:/tmp/
+scp sandbox-gpt-agent.tar.gz root@IP_DEL_VPS:/tmp/
 ```
 
 Entra al VPS:
@@ -57,8 +57,8 @@ Entra al VPS:
 ```bash
 ssh root@IP_DEL_VPS
 cd /tmp
-tar xzf sandbox-gpt-rocky10.tar.gz
-cd sandbox-gpt-rocky10
+tar xzf sandbox-gpt-agent.tar.gz
+cd sandbox-gpt-agent
 sudo bash install.sh
 ```
 
@@ -124,8 +124,8 @@ https://agent.tudominio.com/privacy
 2. Entra a **Explore GPTs**.
 3. Selecciona **Create**.
 4. Ve a **Configure**.
-5. Nombre sugerido: `VPS Sandbox Operator`.
-6. Descripción sugerida: `Opera mi VPS Rocky Linux 10 sandbox mediante Actions para ejecutar comandos, crear código y gestionar archivos.`
+5. Nombre sugerido: `Technology Operator`.
+6. Descripcion sugerida: `Opera un entorno tecnologico controlado mediante Actions para ejecutar comandos, gestionar archivos, diagnosticar servicios y generar artefactos.`
 7. Copia el contenido de `CUSTOM_GPT_INSTRUCTIONS.md` en **Instructions**.
 8. En **Actions**, crea una nueva acción.
 9. Authentication: **API Key**.
@@ -220,7 +220,7 @@ Cuando el usuario suba un archivo al chat, el GPT debe llamar:
 importOpenAIConversationFiles
 ```
 
-El endpoint recibe `openaiFileIdRefs` y descarga los archivos al VPS. Después el GPT puede inspeccionarlos con `listFiles`, `readFile`, `statFile` o comandos Linux.
+El endpoint recibe `openaiFileIdRefs` y descarga los archivos al workspace del agente. Después el GPT puede inspeccionarlos con `listFiles`, `readFile`, `statFile` o comandos Linux.
 
 ## Cómo devolver resultados
 
@@ -310,4 +310,4 @@ El desinstalador quita el servicio y `/opt/sandbox-gpt-agent`. Conserva estado, 
 
 ## Notas de seguridad
 
-El servicio es una API de ejecución remota de comandos. Instálalo únicamente en un VPS controlado. Mantén HTTPS, token fuerte, snapshots, auditoría y un dominio dedicado. No guardes secretos reales de producción dentro de la sandbox.
+El servicio es una API de ejecución remota de comandos. Instálalo únicamente en un entorno controlado. Mantén HTTPS, token fuerte, snapshots, auditoría y un dominio dedicado. No guardes secretos reales de producción dentro del workspace del agente.
