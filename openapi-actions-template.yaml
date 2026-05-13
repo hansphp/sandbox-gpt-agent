@@ -1,0 +1,337 @@
+openapi: 3.1.0
+info:
+  title: Sandbox GPT Agent
+  version: 2.1.0
+  description: Command and file control plane for a disposable VPS sandbox.
+servers:
+  - url: https://TU_DOMINIO
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    ExecRequest:
+      type: object
+      required: [command]
+      properties:
+        command:
+          oneOf:
+            - type: string
+            - type: array
+              items: { type: string }
+        cwd: { type: string }
+        env:
+          type: object
+          additionalProperties: { type: string }
+        stdin: { type: string }
+        stdin_base64: { type: string }
+        timeout: { type: number }
+        shell: { type: boolean, default: true }
+        background: { type: boolean, default: false }
+        max_output_bytes: { type: integer }
+    WriteFileRequest:
+      type: object
+      required: [path, content]
+      properties:
+        path: { type: string }
+        content: { type: string }
+        encoding:
+          type: string
+          enum: [text, base64]
+          default: text
+        append: { type: boolean, default: false }
+        mode: { type: string }
+    MkdirRequest:
+      type: object
+      required: [path]
+      properties:
+        path: { type: string }
+        parents: { type: boolean, default: true }
+        exist_ok: { type: boolean, default: true }
+        mode: { type: string, default: '0755' }
+    ChmodRequest:
+      type: object
+      required: [path, mode]
+      properties:
+        path: { type: string }
+        mode: { type: string }
+    FetchUrlRequest:
+      type: object
+      required: [url, path]
+      properties:
+        url: { type: string }
+        path: { type: string }
+        method: { type: string, enum: [GET, POST, PUT, PATCH], default: GET }
+        headers:
+          type: object
+          additionalProperties: { type: string }
+        body: { type: string }
+        body_base64: { type: string }
+        timeout: { type: number, default: 30 }
+        mode: { type: string }
+    ImportOpenAIFilesRequest:
+      type: object
+      properties:
+        destination_dir: { type: string, default: '.' }
+        overwrite: { type: boolean, default: true }
+        openaiFileIdRefs:
+          type: array
+          description: ChatGPT runtime file references with download links.
+          items:
+            type: object
+            additionalProperties: true
+    ExportFilesRequest:
+      type: object
+      required: [paths]
+      properties:
+        paths:
+          type: array
+          maxItems: 10
+          items: { type: string }
+    ShareFileRequest:
+      type: object
+      required: [path]
+      properties:
+        path: { type: string }
+        ttl_seconds: { type: integer, default: 3600, minimum: 60, maximum: 86400 }
+        max_downloads: { type: integer, default: 3, minimum: 1, maximum: 100 }
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      x-openai-isConsequential: false
+      summary: Check agent health.
+      security: []
+      responses:
+        '200': { description: OK }
+  /v1/sys/info:
+    get:
+      operationId: getSystemInfo
+      x-openai-isConsequential: false
+      summary: Get sandbox system metadata.
+      responses:
+        '200': { description: System metadata. }
+  /v1/exec:
+    post:
+      operationId: runCommand
+      x-openai-isConsequential: false
+      summary: Run a Linux command.
+      description: Runs a command. Use background=true for tasks near 45 seconds.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecRequest'
+      responses:
+        '200': { description: Command result or job id. }
+  /v1/jobs:
+    get:
+      operationId: listJobs
+      x-openai-isConsequential: false
+      summary: List recent background jobs.
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        '200': { description: Jobs. }
+  /v1/jobs/{job_id}:
+    get:
+      operationId: getJob
+      x-openai-isConsequential: false
+      summary: Get job status and log tails.
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: tail_bytes
+          in: query
+          schema: { type: integer, default: 20000 }
+      responses:
+        '200': { description: Job status. }
+    delete:
+      operationId: killJob
+      x-openai-isConsequential: false
+      summary: Terminate a background job.
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: force
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200': { description: Kill result. }
+  /v1/files/list:
+    get:
+      operationId: listFiles
+      x-openai-isConsequential: false
+      summary: List files in a directory.
+      parameters:
+        - name: path
+          in: query
+          schema: { type: string }
+        - name: all
+          in: query
+          schema: { type: boolean, default: true }
+      responses:
+        '200': { description: Directory entries. }
+  /v1/files/stat:
+    get:
+      operationId: statFile
+      x-openai-isConsequential: false
+      summary: Get file metadata.
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: File metadata. }
+  /v1/files/read:
+    get:
+      operationId: readFile
+      x-openai-isConsequential: false
+      summary: Read a text or base64 file chunk.
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema: { type: string }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: max_bytes
+          in: query
+          schema: { type: integer, default: 65536 }
+        - name: encoding
+          in: query
+          schema: { type: string, enum: [text, base64], default: text }
+      responses:
+        '200': { description: File chunk. }
+  /v1/files/write:
+    post:
+      operationId: writeFile
+      x-openai-isConsequential: false
+      summary: Write or append a file.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WriteFileRequest'
+      responses:
+        '200': { description: Write result. }
+  /v1/files/mkdir:
+    post:
+      operationId: makeDirectory
+      x-openai-isConsequential: false
+      summary: Create a directory.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MkdirRequest'
+      responses:
+        '200': { description: Directory result. }
+  /v1/files/chmod:
+    post:
+      operationId: chmodFile
+      x-openai-isConsequential: false
+      summary: Change file permissions.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChmodRequest'
+      responses:
+        '200': { description: Chmod result. }
+  /v1/files/fetch-url:
+    post:
+      operationId: fetchUrlToFile
+      x-openai-isConsequential: false
+      summary: Download a URL to a file.
+      description: Fetches HTTP/HTTPS content and saves it on the VPS.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FetchUrlRequest'
+      responses:
+        '200': { description: Fetch result. }
+  /v1/files:
+    delete:
+      operationId: deleteFile
+      x-openai-isConsequential: false
+      summary: Delete a file or directory.
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema: { type: string }
+        - name: recursive
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        '200': { description: Delete result. }
+  /v1/files/import-openai:
+    post:
+      operationId: importOpenAIConversationFiles
+      x-openai-isConsequential: false
+      summary: Save files uploaded in ChatGPT.
+      description: Downloads openaiFileIdRefs and saves them on the VPS.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportOpenAIFilesRequest'
+      responses:
+        '200': { description: Imported files. }
+  /v1/files/export:
+    post:
+      operationId: returnFilesToChatGPT
+      x-openai-isConsequential: false
+      summary: Return non-image files to ChatGPT.
+      description: Returns up to 10 non-image files with openaiFileResponse.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportFilesRequest'
+      responses:
+        '200': { description: openaiFileResponse. }
+  /v1/files/share:
+    post:
+      operationId: shareFile
+      x-openai-isConsequential: false
+      summary: Create a temporary public file link.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareFileRequest'
+      responses:
+        '200': { description: Public download URL. }
+  /v1/audit/tail:
+    get:
+      operationId: tailAuditLog
+      x-openai-isConsequential: false
+      summary: Read recent audit events.
+      parameters:
+        - name: lines
+          in: query
+          schema: { type: integer, default: 100 }
+      responses:
+        '200': { description: Audit log lines. }

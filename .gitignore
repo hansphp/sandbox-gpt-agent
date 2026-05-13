@@ -1,0 +1,56 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python packaging and build output
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Test, lint, and type-check caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.token
+*.secret
+secrets/
+
+# Runtime state and logs
+*.log
+logs/
+tmp/
+temp/
+*.pid
+*.sock
+
+# Generated archives and release bundles
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
