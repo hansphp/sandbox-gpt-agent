@@ -2,9 +2,9 @@
 
 ## Objetivo
 
-Esta guia instala `sandbox-gpt-agent` en un VPS Rocky Linux 10 como despliegue de referencia para un agente tecnologico de proposito general conectado mediante GPT Actions.
+Esta guía instala `sandbox-gpt-agent` en un VPS Rocky Linux 10 como despliegue de referencia para un agente tecnológico de propósito general conectado mediante GPT Actions.
 
-La interfaz es generica. No programa scripts especificos de capturas, scrapers o aplicaciones. Sirve como control plane para que el GPT pueda crear codigo, ejecutar tareas, leer salidas, descargar artefactos, modificar archivos, diagnosticar servicios y preparar laboratorios tecnologicos en solicitudes futuras.
+La interfaz es genérica. No se limita a programar scripts específicos de capturas, scrapers o aplicaciones. Sirve como plano de control para que el GPT pueda crear código, ejecutar tareas, leer salidas, descargar artefactos, modificar archivos, diagnosticar servicios y preparar laboratorios tecnológicos en solicitudes futuras.
 
 ## Arquitectura
 
@@ -22,7 +22,7 @@ sandbox-gpt-agent.service
 Rocky Linux 10 VPS
 ```
 
-El servicio escucha localmente en `127.0.0.1:8765`. Nginx publica la API por HTTPS en puerto 443. El GPT usa API Key tipo Bearer.
+El servicio escucha localmente en `127.0.0.1:8765`. Nginx publica la API por HTTPS en el puerto 443. El GPT usa una API Key de tipo Bearer.
 
 ## Qué capacidades expone
 
@@ -32,16 +32,16 @@ El servicio escucha localmente en `127.0.0.1:8765`. Nginx publica la API por HTT
 - Crear, leer, listar, borrar y cambiar permisos de archivos.
 - Subir archivos mediante HTTP raw upload.
 - Importar archivos subidos al chat con `openaiFileIdRefs`.
-- Devolver archivos no imagen con `openaiFileResponse`.
+- Devolver archivos que no sean imágenes con `openaiFileResponse`.
 - Crear enlaces temporales públicos para imágenes o binarios grandes.
-- Consultar auditoría y estado del sistema.
+- Consultar la auditoría y el estado del sistema.
 
 ## Requisitos
 
 - VPS con Rocky Linux 10.
 - Acceso root o sudo.
 - Dominio o subdominio apuntando al VPS.
-- Puertos 80 y 443 abiertos en el proveedor cloud.
+- Puertos 80 y 443 abiertos en el proveedor de nube.
 - `firewalld` opcional; el script abre HTTP/HTTPS si está activo.
 
 ## Instalación del agente
@@ -108,7 +108,7 @@ Luego ejecuta:
 DOMAIN=agent.tudominio.com EMAIL=tu@email.com sudo -E bash setup-nginx-https.sh
 ```
 
-El script instala Nginx, Certbot, configura reverse proxy, habilita HTTPS y actualiza `SANDBOX_PUBLIC_BASE_URL`.
+El script instala Nginx y Certbot, configura el reverse proxy, habilita HTTPS y actualiza `SANDBOX_PUBLIC_BASE_URL`.
 
 URLs esperadas:
 
@@ -125,7 +125,7 @@ https://agent.tudominio.com/privacy
 3. Selecciona **Create**.
 4. Ve a **Configure**.
 5. Nombre sugerido: `Technology Operator`.
-6. Descripcion sugerida: `Opera un entorno tecnologico controlado mediante Actions para ejecutar comandos, gestionar archivos, diagnosticar servicios y generar artefactos.`
+6. Descripción sugerida: `Opera un entorno tecnológico controlado mediante Actions para ejecutar comandos, gestionar archivos, diagnosticar servicios y generar artefactos.`
 7. Copia el contenido de `CUSTOM_GPT_INSTRUCTIONS.md` en **Instructions**.
 8. En **Actions**, crea una nueva acción.
 9. Authentication: **API Key**.
@@ -153,7 +153,7 @@ curl -s -X POST "$HOST/v1/exec" \
   -d '{"command":"id && pwd && ls -la"}'
 ```
 
-Ejecutar job largo:
+Ejecutar un job largo:
 
 ```bash
 curl -s -X POST "$HOST/v1/exec" \
@@ -162,14 +162,14 @@ curl -s -X POST "$HOST/v1/exec" \
   -d '{"command":"dnf install -y git && git --version","background":true,"timeout":900}'
 ```
 
-Consultar job:
+Consultar un job:
 
 ```bash
 curl -s "$HOST/v1/jobs/JOB_ID?tail_bytes=60000" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Crear archivo:
+Crear un archivo:
 
 ```bash
 curl -s -X POST "$HOST/v1/files/write" \
@@ -187,7 +187,7 @@ curl -s -X POST "$HOST/v1/exec" \
   -d '{"command":"python3 demo/hello.py"}'
 ```
 
-Subir archivo raw desde tu máquina:
+Subir un archivo raw desde tu máquina:
 
 ```bash
 curl -s -X PUT "$HOST/v1/files/raw?path=uploads/archivo.bin" \
@@ -195,7 +195,7 @@ curl -s -X PUT "$HOST/v1/files/raw?path=uploads/archivo.bin" \
   --data-binary "@archivo.bin"
 ```
 
-Descargar archivo autenticado:
+Descargar un archivo autenticado:
 
 ```bash
 curl -L "$HOST/v1/files/download?path=uploads/archivo.bin" \
@@ -203,7 +203,7 @@ curl -L "$HOST/v1/files/download?path=uploads/archivo.bin" \
   -o archivo.bin
 ```
 
-Crear URL temporal pública:
+Crear una URL temporal pública:
 
 ```bash
 curl -s -X POST "$HOST/v1/files/share" \
@@ -214,17 +214,17 @@ curl -s -X POST "$HOST/v1/files/share" \
 
 ## Cómo usar archivos subidos en ChatGPT
 
-Cuando el usuario suba un archivo al chat, el GPT debe llamar:
+Cuando el usuario suba un archivo al chat, el GPT debe llamar a:
 
 ```text
 importOpenAIConversationFiles
 ```
 
-El endpoint recibe `openaiFileIdRefs` y descarga los archivos al workspace del agente. Después el GPT puede inspeccionarlos con `listFiles`, `readFile`, `statFile` o comandos Linux.
+El endpoint recibe `openaiFileIdRefs` y descarga los archivos al workspace del agente. Después, el GPT puede inspeccionarlos con `listFiles`, `readFile`, `statFile` o comandos Linux.
 
 ## Cómo devolver resultados
 
-Para texto y archivos no imagen menores de 10 MB:
+Para texto y archivos que no sean imágenes y que pesen menos de 10 MB:
 
 ```text
 returnFilesToChatGPT
@@ -270,7 +270,7 @@ SANDBOX_ACTIONS_CONSEQUENTIAL=false
 SANDBOX_ACTIONS_CONSEQUENTIAL=true
 ```
 
-Luego reinicia el servicio y vuelve a importar el schema en el GPT.
+Luego reinicia el servicio y vuelve a importar el esquema en el GPT.
 
 ## Logs y auditoría
 
@@ -280,7 +280,7 @@ Ver logs del servicio:
 journalctl -u sandbox-gpt-agent -n 100 --no-pager
 ```
 
-Ver auditoría:
+Ver la auditoría:
 
 ```bash
 tail -n 100 /var/log/sandbox-gpt-agent/audit.log
@@ -298,7 +298,7 @@ tailAuditLog
 sudo bash rotate-token.sh
 ```
 
-Después actualiza el token en la configuración de Authentication de la Action.
+Después, actualiza el token en la configuración de Authentication de la Action.
 
 ## Desinstalar
 
@@ -306,8 +306,8 @@ Después actualiza el token en la configuración de Authentication de la Action.
 sudo bash uninstall.sh
 ```
 
-El desinstalador quita el servicio y `/opt/sandbox-gpt-agent`. Conserva estado, workspace, logs y env para evitar borrar accidentalmente proyectos.
+El desinstalador quita el servicio y `/opt/sandbox-gpt-agent`. Conserva el estado, el workspace, los logs y el archivo env para evitar borrar proyectos accidentalmente.
 
 ## Notas de seguridad
 
-El servicio es una API de ejecución remota de comandos. Instálalo únicamente en un entorno controlado. Mantén HTTPS, token fuerte, snapshots, auditoría y un dominio dedicado. No guardes secretos reales de producción dentro del workspace del agente.
+El servicio es una API de ejecución remota de comandos. Instálalo únicamente en un entorno controlado. Mantén HTTPS, un token fuerte, snapshots, auditoría y un dominio dedicado. No guardes secretos reales de producción dentro del workspace del agente.
